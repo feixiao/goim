@@ -37,4 +37,6 @@ require (
 	gopkg.in/yaml.v2 v2.2.2 // indirect
 )
 
+replace github.com/Terry-Mao/goim v0.0.0 => ./
+
 go 1.13
