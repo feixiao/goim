@@ -7,13 +7,16 @@ import (
 	"github.com/Terry-Mao/goim/internal/comet/errors"
 )
 
+// Logic Server 通过 RPC 调用，将广播的消息发给 Room.Push, 数据会被暂存在 vers, ops, msgs 里，
+// 每个 Room 在初始化时会开启一个 groutine 用来处理暂存的消息，达到 Batch Num 数量或是延迟一定时间后，将消息批量 Push 到 Channel 消息通道。
+
 // Room is a room and store channel room info.
 type Room struct {
-	ID        string
+	ID        string // 房间号
 	rLock     sync.RWMutex
-	next      *Channel
-	drop      bool
-	Online    int32 // dirty read is ok
+	next      *Channel // 该房间的所有客户端的Channel  是一个双向链表，复杂度为o(1)，效率比较高。
+	drop      bool     // 标示房间是否存活
+	Online    int32    // 房间的channel数量，即房间的在线用户的多少 dirty read is ok
 	AllOnline int32
 }
 

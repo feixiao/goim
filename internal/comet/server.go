@@ -52,9 +52,12 @@ func newLogicClient(c *conf.RPCClient) logic.LogicClient {
 }
 
 // Server is comet server.
+// 客户端首先连接到comet服务，comet调用logic来校验用户的合法性，logic会返回一个subKey给comet，该subKey成为该连接的唯一标示；
+// 客户端接下来可以发心跳包给comet，同时，job服务将MQ-Kafka的消息转发到对应comet，comet再将其转发到对应的客户端
 type Server struct {
-	c         *conf.Config
-	round     *Round    // accept round store
+	c     *conf.Config
+	round *Round // accept round store
+	// 保存着当前Comet服务于哪些 Room 和 Channel. 长连接具体分布在哪个 Bucket 上呢？根据 SubKey 一致性 Hash 来选择。
 	buckets   []*Bucket // subkey bucket
 	bucketIdx uint32
 

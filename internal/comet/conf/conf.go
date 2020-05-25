@@ -184,9 +184,9 @@ type Protocol struct {
 type Bucket struct {
 	Size          int
 	Channel       int
-	Room          int
-	RoutineAmount uint64
-	RoutineSize   int
+	Room          int    // 房间（Bucket.rooms）的初始化个数
+	RoutineAmount uint64 // Bucket.routines数组大小
+	RoutineSize   int    // 房间信道通信(proto.BoardcastRoomArg)缓冲区的大小
 }
 
 // Whitelist is white list config.

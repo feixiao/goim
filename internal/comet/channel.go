@@ -9,9 +9,9 @@ import (
 
 // Channel used by message pusher send msg to write goroutine.
 type Channel struct {
-	Room     *Room
-	CliProto Ring
-	signal   chan *grpc.Proto
+	Room     *Room            // 每个 Channel 都有一个 Room
+	CliProto Ring             // 保存 Room 广播或是直接发送过来的消息体
+	signal   chan *grpc.Proto // 客户端 proto
 	Writer   bufio.Writer
 	Reader   bufio.Reader
 	Next     *Channel

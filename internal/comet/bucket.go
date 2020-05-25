@@ -8,15 +8,30 @@ import (
 	"github.com/Terry-Mao/goim/internal/comet/conf"
 )
 
+// 房间信息推送流程：
+//	job通过rpc的方式发送msg到comet
+//	comet内部将消息推送到至bucket.routines，bucket.routines以轮询的方式选出一个proto.BoardcastRoomArg信道进行消息转发
+//	bucket.routines's worker 消费消息，根据msg'roomid从roomsMap(bucket.rooms)选出该room的所有客户端Channels，再将消息一一转发至client'Channel
+//	dispatchWorker消费client'Channel消息，通过websocket或者tcp协议发送到客户端
+//
+//单播推送流程：
+//	单播相对于”房播（群播）”，简化了房间检索的步骤。
+//	job通过rpc的方式发送msg到comet
+//	comet内部根据消息的subKey，从buckets中找出对应的channel，将消息转发到对应的Channel
+//	dispatchWorker消费client'Channel消息，通过websocket或者tcp协议发送到客户端
+
 // Bucket is a channel holder.
+// 维护当前消息通道和房间的信息
 type Bucket struct {
 	c     *conf.Bucket
-	cLock sync.RWMutex        // protect the channels for chs
-	chs   map[string]*Channel // map sub key to a channel
+	cLock sync.RWMutex // protect the channels for chs
+	// 维护一个长连接用户，只能对应一个 Room. 推送的消息可以在 Room 内广播，也可以推送到指定的 Channel.
+	chs map[string]*Channel // map sub key to a channel
 	// room
-	rooms       map[string]*Room // bucket room channels
-	routines    []chan *grpc.BroadcastRoomReq
-	routinesNum uint64
+	// 可以理解为房间，群组或是一个 Group. 这个房间内维护 N 个 Channel, 即长连接用户。在该 Room 内广播消息，会发送给房间内的所有 Channel.
+	rooms       map[string]*Room              // bucket room channels
+	routines    []chan *grpc.BroadcastRoomReq // 节点房间的总信道数
+	routinesNum uint64                        // 处理routines信道的goroutine个数，用于消费房播的信道消息
 
 	ipCnts map[string]int32
 }
