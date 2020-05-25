@@ -5,29 +5,27 @@
 
 ### 功能简介
 ![arch](./1.jpg)
-#### 1.comet
-```text
-长连接服务器，支持长轮训、tcp、websocket连接，有超时机制
-```
+#### comet
++  长连接服务器，支持长轮训、tcp、websocket连接，有超时机制
++  前端接入可以使用LVS 或者 DNS来转发
 
-#### 2.logic
-```text
-逻辑处理服务器，消息推送入口，
-通过userId在router服务器中查找对应的comet服务器，将serverId和消息一起保存到kafka队列，logic是无状态服务器，可以随意增删，
-因为comet需要连接logic，所以在comet服务器中需要连接logic的通过LVS的虚IP，LVS加了real server后不会断开，所以需要在comet服务触发SIGHUP，重新load配置文件。
-```
+#### logic
++ logic 属于无状态的逻辑层，可以随意增加节点，使用nginx upstream来扩展http接口，内部rpc部分，可以使用LVS四层转发。
++ 逻辑处理服务器，消息推送入口，通过userId在router服务器中查找对应的comet服务器，将serverId和消息一起保存到kafka队列
++ 因为**comet需要连接logic**，所以在comet服务器中需要**连接logic的通过LVS的虚IP**，LVS加了real server后不会断开，
+所以需要在comet服务触发SIGHUP，重新load配置文件。
 
-
-3.router
-```text
-路由服务器，保存userId和serverId的关系，serverId指的是comet服务器地址，userId和roomId的关系，注册用户roomId为固定1，非注册用户roomId为-1，注册和非注册的区分是我猜的，猎豹IM的同学可以确认下。logic连接router需要一致性hash，所以不能随意添加router服务器。不选择redis代替router作者解释是因为有同一userId多次连接序号分配问题以及原子操作，我觉得通过key:userId来记录自增，key:userId:seq来记录每个连接，这样也是可以的。
-```
+#### router
++ router 属于**有状态节点**，logic可以使用一致性hash配置节点，增加多个router节点（目前**还不支持动态扩容**），提前预估好在线和压力情况
++ 路由服务器，保存userId和serverId的关系，serverId指的是comet服务器地址。
++ logic**连接router需要一致性hash**，所以不能随意添加router服务器。
++ 不选择redis代替router作者解释是因为有**同一userId多次连接序号分配问题以及原子操作**，我觉得通过key:userId来记录自增，key:userId:seq来记录每个连接，这样也是可以的。
 
 
-4.job
-```text
-消息转发服务器，从kafka队列中获取消息，发送给comet服务器，无状态服务器可以随意增删。
-```
+
+#### job
++ 消息转发服务器，从kafka队列中获取消息，发送给comet服务器，无状态服务器可以随意增删。
+
 
 ### 推送服务具有的特性
 + 1.支持一个端的多个连接，比如同一用户在不同的电脑上登录可以同时接收到消息；
