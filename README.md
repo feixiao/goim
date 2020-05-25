@@ -23,6 +23,11 @@ goim is a im server writen by golang.
 
 ## Quick Start
 
+### Dependencies
+[Discovery](https://github.com/Bilibili/discovery)
+
+[Kafka](https://kafka.apache.org/quickstart)
+
 ### Build
 ```
     make build
@@ -55,10 +60,7 @@ goim is a im server writen by golang.
 ### Configuration
 You can view the comments in target/comet.toml,logic.toml,job.toml to understand the meaning of the config.
 
-### Dependencies
-[Discovery](https://github.com/Bilibili/discovery)
 
-[Kafka](https://kafka.apache.org/quickstart)
 
 ## Document
 [Protocol](./docs/protocol.png)
