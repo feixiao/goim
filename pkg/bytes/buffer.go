@@ -18,10 +18,10 @@ func (b *Buffer) Bytes() []byte {
 // Pool is a buffer pool.
 type Pool struct {
 	lock sync.Mutex
-	free *Buffer
-	max  int
-	num  int
-	size int
+	free *Buffer // 内部未使用Buffer
+	max  int     // max = num * size
+	num  int     // 总共多少块内存
+	size int     // 每块多少字节内存
 }
 
 // NewPool new a memory buffer pool struct.
@@ -52,10 +52,16 @@ func (p *Pool) grow() {
 		bs  []Buffer
 		buf []byte
 	)
+
+	// 分配大内存
 	buf = make([]byte, p.max)
+	// 对应多少块Buffer？
 	bs = make([]Buffer, p.num)
+
 	p.free = &bs[0]
 	b = p.free
+
+	// Buffer 对应上面的buf
 	for i = 1; i < p.num; i++ {
 		b.buf = buf[(i-1)*p.size : i*p.size]
 		b.next = &bs[i]
@@ -69,7 +75,7 @@ func (p *Pool) grow() {
 func (p *Pool) Get() (b *Buffer) {
 	p.lock.Lock()
 	if b = p.free; b == nil {
-		p.grow()
+		p.grow() // 使用完以后再次分配
 		b = p.free
 	}
 	p.free = b.next
