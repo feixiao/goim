@@ -68,11 +68,12 @@ type Server struct {
 // NewServer returns a new Server.
 func NewServer(c *conf.Config) *Server {
 	s := &Server{
-		c:         c,
-		round:     NewRound(c),
+		c:     c,
+		round: NewRound(c),
+		// 需要调用logic组件
 		rpcClient: newLogicClient(c.RPCClient),
 	}
-	// init bucket
+	// Buck为核心结构
 	s.buckets = make([]*Bucket, c.Bucket.Size)
 	s.bucketIdx = uint32(c.Bucket.Size)
 	for i := 0; i < c.Bucket.Size; i++ {
@@ -119,6 +120,7 @@ func (s *Server) onlineproc() {
 				roomCount[roomID] += count
 			}
 		}
+		// 通知logic在线房间情况
 		if allRoomsCount, err = s.RenewOnline(context.Background(), s.serverID, roomCount); err != nil {
 			time.Sleep(time.Second)
 			continue

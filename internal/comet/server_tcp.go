@@ -26,6 +26,8 @@ func InitTCP(server *Server, addrs []string, accept int) (err error) {
 		listener *net.TCPListener
 		addr     *net.TCPAddr
 	)
+
+	// 多个地址绑定，多个goroutine做accept
 	for _, bind = range addrs {
 		if addr, err = net.ResolveTCPAddr("tcp", bind); err != nil {
 			log.Errorf("net.ResolveTCPAddr(tcp, %s) error(%v)", bind, err)
@@ -59,6 +61,8 @@ func acceptTCP(server *Server, lis *net.TCPListener) {
 			log.Errorf("listener.Accept(\"%s\") error(%v)", lis.Addr().String(), err)
 			return
 		}
+
+		// TCP连接特性设置
 		if err = conn.SetKeepAlive(server.c.TCP.KeepAlive); err != nil {
 			log.Errorf("conn.SetKeepAlive() error(%v)", err)
 			return
@@ -71,6 +75,10 @@ func acceptTCP(server *Server, lis *net.TCPListener) {
 			log.Errorf("conn.SetWriteBuffer() error(%v)", err)
 			return
 		}
+
+		//  处理tcp连接
+		// 多个acceptTCP同时执行，r++没有加锁，默认是串行的？
+		// r作为索引用于分配使用读写缓存和timer
 		go serveTCP(server, conn, r)
 		if r++; r == maxInt {
 			r = 0
@@ -80,7 +88,7 @@ func acceptTCP(server *Server, lis *net.TCPListener) {
 
 func serveTCP(s *Server, conn *net.TCPConn, r int) {
 	var (
-		// timer
+		// 提前分配号的读、写对象和timer对象
 		tr = s.round.Timer(r)
 		rp = s.round.Reader(r)
 		wp = s.round.Writer(r)
