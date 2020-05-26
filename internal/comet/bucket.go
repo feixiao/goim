@@ -25,12 +25,13 @@ import (
 type Bucket struct {
 	c     *conf.Bucket
 	cLock sync.RWMutex // protect the channels for chs
-	// 维护一个长连接用户，只能对应一个 Room. 推送的消息可以在 Room 内广播，也可以推送到指定的 Channel.
+	// 维护一个长连接用户，只能对应一个 Room.
+	// 推送的消息可以在 Room 内广播，也可以推送到指定的 Channel(维护一个长连接用户).
 	chs map[string]*Channel // map sub key to a channel
 	// room
 	// 可以理解为房间，群组或是一个 Group. 这个房间内维护 N 个 Channel, 即长连接用户。在该 Room 内广播消息，会发送给房间内的所有 Channel.
 	rooms       map[string]*Room              // bucket room channels
-	routines    []chan *grpc.BroadcastRoomReq // 节点房间的总信道数
+	routines    []chan *grpc.BroadcastRoomReq // 节点房间的总信道数(用于广播给bucket下所有的room)
 	routinesNum uint64                        // 处理routines信道的goroutine个数，用于消费房播的信道消息
 
 	ipCnts map[string]int32

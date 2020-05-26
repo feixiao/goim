@@ -116,22 +116,32 @@ func (s *Server) ServeTCP(conn *net.TCPConn, rp, wp *bytes.Pool, tr *xtime.Timer
 		lastHb  = time.Now()
 		rb      = rp.Get()
 		wb      = wp.Get()
-		ch      = NewChannel(s.c.Protocol.CliProto, s.c.Protocol.SvrProto)
-		rr      = &ch.Reader
-		wr      = &ch.Writer
+
+		// Channel 维护一个长连接用户
+		ch = NewChannel(s.c.Protocol.CliProto, s.c.Protocol.SvrProto)
+		rr = &ch.Reader
+		wr = &ch.Writer
 	)
+
+	// 读写缓存使用Pool内部的内存
 	ch.Reader.ResetBuffer(conn, rb.Bytes())
 	ch.Writer.ResetBuffer(conn, wb.Bytes())
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	// handshake
+
+	// 协议handshake超时检测
 	step := 0
 	trd = tr.Add(time.Duration(s.c.Protocol.HandshakeTimeout), func() {
 		conn.Close()
 		log.Errorf("key: %s remoteIP: %s step: %d tcp handshake timeout", ch.Key, conn.RemoteAddr().String(), step)
 	})
+
+	// 获取客户端IP,保存到Channel
 	ch.IP, _, _ = net.SplitHostPort(conn.RemoteAddr().String())
+
 	// must not setadv, only used in auth
+	// 认证操作
 	step = 1
 	if p, err = ch.CliProto.Set(); err == nil {
 		if ch.Mid, ch.Key, rid, accepts, hb, err = s.authTCP(ctx, rr, wr, p); err == nil {
@@ -143,6 +153,7 @@ func (s *Server) ServeTCP(conn *net.TCPConn, rp, wp *bytes.Pool, tr *xtime.Timer
 			}
 		}
 	}
+
 	step = 2
 	if err != nil {
 		conn.Close()
@@ -158,6 +169,7 @@ func (s *Server) ServeTCP(conn *net.TCPConn, rp, wp *bytes.Pool, tr *xtime.Timer
 	if white {
 		whitelist.Printf("key: %s[%s] auth\n", ch.Key, rid)
 	}
+
 	step = 3
 	// hanshake ok start dispatch goroutine
 	go s.dispatchTCP(conn, wr, wp, wb, ch)

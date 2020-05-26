@@ -120,7 +120,7 @@ func (s *Server) onlineproc() {
 				roomCount[roomID] += count
 			}
 		}
-		// 通知logic在线房间情况
+		// 通知logic在线房间情况 房间编号以及编号内部有多少人
 		if allRoomsCount, err = s.RenewOnline(context.Background(), s.serverID, roomCount); err != nil {
 			time.Sleep(time.Second)
 			continue

@@ -40,16 +40,23 @@ func main() {
 
 	log.Infof("goim-comet [version: %s env: %+v] start", ver, conf.Conf.Env)
 	// register discovery
+	// B站自研服务注册中心
 	dis := naming.New(conf.Conf.Discovery)
 	resolver.Register(dis)
+
 	// new comet server
 	srv := comet.NewServer(conf.Conf)
+
+	// 白名单
 	if err := comet.InitWhitelist(conf.Conf.Whitelist); err != nil {
 		panic(err)
 	}
+
+	// TCP服务
 	if err := comet.InitTCP(srv, conf.Conf.TCP.Bind, runtime.NumCPU()); err != nil {
 		panic(err)
 	}
+	// WebSocket服务
 	if err := comet.InitWebsocket(srv, conf.Conf.Websocket.Bind, runtime.NumCPU()); err != nil {
 		panic(err)
 	}
@@ -58,7 +65,8 @@ func main() {
 			panic(err)
 		}
 	}
-	// new grpc server
+
+	// 内部的GRpc服务
 	rpcSrv := grpc.New(conf.Conf.RPCServer, srv)
 	cancel := register(dis, srv)
 	// signal
