@@ -16,6 +16,7 @@
 所以需要在comet服务触发SIGHUP，重新load配置文件。
 
 #### router
++ 2.0 中router已经不存在，功能合并到哪里了？
 + router 属于**有状态节点**，logic可以使用一致性hash配置节点，增加多个router节点（目前**还不支持动态扩容**），提前预估好在线和压力情况
 + 路由服务器，保存userId和serverId的关系，serverId指的是comet服务器地址。
 + logic**连接router需要一致性hash**，所以不能随意添加router服务器。

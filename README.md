@@ -1,22 +1,29 @@
 goim v2.0
 ==============
-[![Build Status](https://travis-ci.org/Terry-Mao/goim.svg?branch=master)](https://travis-ci.org/Terry-Mao/goim) 
-[![Go Report Card](https://goreportcard.com/badge/github.com/Terry-Mao/goim)](https://goreportcard.com/report/github.com/Terry-Mao/goim)
-[![codecov](https://codecov.io/gh/Terry-Mao/goim/branch/master/graph/badge.svg)](https://codecov.io/gh/Terry-Mao/goim)
+`Terry-Mao/goim` 是一个支持集群的im及实时推送服务。
 
-goim is a im server writen by golang.
+---------------------------------------
+  * [特性](#特性)
+  * [安装](#安装)
+  * [配置](#配置)
+  * [例子](#例子)
+  * [文档](#文档)
+  * [集群](#集群)
+  * [更多](#更多)
 
-## Features
- * Light weight
- * High performance
- * Pure Golang
- * Supports single push, multiple push and broadcasting
- * Supports one key to multiple subscribers (Configurable maximum subscribers count)
- * Supports heartbeats (Application heartbeats, TCP, KeepAlive, HTTP long pulling)
- * Supports authentication (Unauthenticated user can't subscribe)
- * Supports multiple protocols (WebSocket，TCP，HTTP）
- * Scalable architecture (Unlimited dynamic job and logic modules)
- * Asynchronous push notification based on Kafka
+---------------------------------------
+
+## 特性
+ * 轻量级
+ * 高性能
+ * 纯Golang实现
+ * 支持单个、多个、单房间以及广播消息推送
+ * 支持单个Key多个订阅者（可限制订阅者最大人数）
+ * 心跳支持（应用心跳和tcp、keepalive）
+ * 支持安全验证（未授权用户不能订阅）
+ * 多协议支持（websocket，tcp）
+ * 可拓扑的架构（job、logic模块可动态无限扩展）
+ * 基于Kafka做异步消息推送
 
 ## Architecture
 ![arch](./docs/arch.png)
@@ -24,9 +31,24 @@ goim is a im server writen by golang.
 ## Quick Start
 
 ### Dependencies
-[Discovery](https://github.com/Bilibili/discovery)
++ [Discovery](https://github.com/Bilibili/discovery)
+```shell script
+# 下载release包
+mkdir discovery
+tar -zxvf discovery_1.1.2_Linux_x86_64.tar.gz
+# 修改地址为0.0.0.0
+nohup ./discovery -conf configs/discovery-example.toml &
+```
++ [Kafka](https://kafka.apache.org/quickstart)
+```shell script
+# 下载安装包
+http://kafka.apache.org/downloads
 
-[Kafka](https://kafka.apache.org/quickstart)
+# 修改配置server.properties
+
+# 启动服务
+nohup ./kafka-server-start.sh ../config/server.properties &
+```
 
 ### Build
 ```
