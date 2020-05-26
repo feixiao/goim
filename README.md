@@ -50,6 +50,15 @@ http://kafka.apache.org/downloads
 nohup ./kafka-server-start.sh ../config/server.properties &
 ```
 
+#### 组件功能划分
++ Zookeeper 支持Kafka的运行
++ Kafka 消息队列启动，业务Push消息到这里
++ Redis 用户在线状态、服务状态的缓存服务启动
++ Discovery 启动服务注册、发现框架
++ logic启动，接收业务Push消息，推送到消息队列
++ comet启动，接受用户注册、连接注册、消息下发
++ job启动，读取消息队列，发送到comet
+
 ### Build
 ```
     make build
