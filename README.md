@@ -45,6 +45,8 @@ nohup ./discovery -conf configs/discovery-example.toml &
 http://kafka.apache.org/downloads
 
 # 修改配置server.properties
+# 消费者会拿到这个信息
+advertised.listeners=PLAINTEXT://172.20.99.13:9092
 
 # 启动服务
 nohup ./kafka-server-start.sh ../config/server.properties &
@@ -75,7 +77,11 @@ nohup ./kafka-server-start.sh ../config/server.properties &
     nohup target/job -conf=target/job.toml -region=sh -zone=sh001 deploy.env=dev 2>&1 > target/logic.log &
 
 ```
-### Environment
+
+### 测试
+使用example下面的程序即可
+
+### 支持从环境变量读取配置
 ```
     env:
     export REGION=sh
