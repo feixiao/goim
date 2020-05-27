@@ -14,11 +14,11 @@ import (
 // Connect connected a conn.
 func (l *Logic) Connect(c context.Context, server, cookie string, token []byte) (mid int64, key, roomID string, accepts []int32, hb int64, err error) {
 	var params struct {
-		Mid      int64   `json:"mid"`
-		Key      string  `json:"key"`
-		RoomID   string  `json:"room_id"`
-		Platform string  `json:"platform"`
-		Accepts  []int32 `json:"accepts"`
+		Mid      int64   `json:"mid"`      // 用户在业务中的ID (int64)
+		Key      string  `json:"key"`      // 客户端标识别,如果为空则自动生成UUID
+		RoomID   string  `json:"room_id"`  // 客户端加入房间
+		Platform string  `json:"platform"` // 客户端所在平台
+		Accepts  []int32 `json:"accepts"`  // 监听房间
 	}
 	if err = json.Unmarshal(token, &params); err != nil {
 		log.Errorf("json.Unmarshal(%s) error(%v)", token, err)

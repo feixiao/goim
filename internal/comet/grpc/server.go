@@ -19,9 +19,9 @@ func New(c *conf.RPCServer, s *comet.Server) *grpc.Server {
 	keepParams := grpc.KeepaliveParams(keepalive.ServerParameters{
 		MaxConnectionIdle:     time.Duration(c.IdleTimeout),
 		MaxConnectionAgeGrace: time.Duration(c.ForceCloseWait),
-		Time:             time.Duration(c.KeepAliveInterval),
-		Timeout:          time.Duration(c.KeepAliveTimeout),
-		MaxConnectionAge: time.Duration(c.MaxLifeTime),
+		Time:                  time.Duration(c.KeepAliveInterval),
+		Timeout:               time.Duration(c.KeepAliveTimeout),
+		MaxConnectionAge:      time.Duration(c.MaxLifeTime),
 	})
 	srv := grpc.NewServer(keepParams)
 	pb.RegisterCometServer(srv, &server{s})
@@ -82,6 +82,12 @@ func (s *server) Broadcast(ctx context.Context, req *pb.BroadcastReq) (*pb.Broad
 		for _, bucket := range s.srv.Buckets() {
 			bucket.Broadcast(req.GetProto(), req.ProtoOp)
 			if req.Speed > 0 {
+				// 该bucket
+				// 有0个channel时，t = 0 / 32 = 0
+				// 有2个channel时, t = 2 / 32 = 0.0625
+				// 有32个channel时, t = 32 / 32 = 1
+				// 有64个channel时，t = 64 / 32 = 2
+				// 由此可得，（comet）speed 的含义是 每个bucket每秒最多发送的消息数量
 				t := bucket.ChannelCount() / int(req.Speed)
 				time.Sleep(time.Duration(t) * time.Second)
 			}

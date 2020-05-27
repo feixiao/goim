@@ -30,7 +30,9 @@ func (l *Logic) PushKeys(c context.Context, op int32, keys []string, msg []byte)
 }
 
 // PushMids push a message by mid.
+// mid => []PushMsg{op, server, keys, msg}
 func (l *Logic) PushMids(c context.Context, op int32, mids []int64, msg []byte) (err error) {
+	// 根据用户ID获取所有的 key:server 对应关系；在redis中是一个hash
 	keyServers, _, err := l.dao.KeysByMids(c, mids)
 	if err != nil {
 		return
@@ -44,6 +46,7 @@ func (l *Logic) PushMids(c context.Context, op int32, mids []int64, msg []byte) 
 		keys[server] = append(keys[server], key)
 	}
 	for server, keys := range keys {
+		// 通过DAO组装PushMsg投递给MQ
 		if err = l.dao.PushMsg(c, op, server, keys, msg); err != nil {
 			return
 		}
@@ -58,5 +61,6 @@ func (l *Logic) PushRoom(c context.Context, op int32, typ, room string, msg []by
 
 // PushAll push a message to all.
 func (l *Logic) PushAll(c context.Context, op, speed int32, msg []byte) (err error) {
+	// speed这里需要去到Job才知道speed的具体功效
 	return l.dao.BroadcastMsg(c, op, speed, msg)
 }

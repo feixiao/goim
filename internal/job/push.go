@@ -15,6 +15,9 @@ func (j *Job) push(ctx context.Context, pushMsg *pb.PushMsg) (err error) {
 	case pb.PushMsg_PUSH:
 		err = j.pushKeys(pushMsg.Operation, pushMsg.Server, pushMsg.Keys, pushMsg.Msg)
 	case pb.PushMsg_ROOM:
+		// 获取一个job中的Room缓存，用于房间内“定时，定量”发送消息，减少请求次数
+		// 这里调用的Push并不会立即发送，而是放在Room.proto这个channel中
+		// 实际放松是由Room.pushproc来定时
 		err = j.getRoom(pushMsg.Room).Push(pushMsg.Operation, pushMsg.Msg)
 	case pb.PushMsg_BROADCAST:
 		err = j.broadcast(pushMsg.Operation, pushMsg.Msg, pushMsg.Speed)
@@ -25,6 +28,8 @@ func (j *Job) push(ctx context.Context, pushMsg *pb.PushMsg) (err error) {
 }
 
 // pushKeys push a message to a batch of subkeys.
+// 根据serverID发送给特定的Comet服务，避免广播
+// cometServers 是由discovery服务发现维护的comet列表。
 func (j *Job) pushKeys(operation int32, serverID string, subKeys []string, body []byte) (err error) {
 	buf := bytes.NewWriterSize(len(body) + 64)
 	p := &comet.Proto{
@@ -50,6 +55,7 @@ func (j *Job) pushKeys(operation int32, serverID string, subKeys []string, body 
 }
 
 // broadcast broadcast a message to all.
+// 处理成一个BroadcastReq,并广播给所有的Comet
 func (j *Job) broadcast(operation int32, body []byte, speed int32) (err error) {
 	buf := bytes.NewWriterSize(len(body) + 64)
 	p := &comet.Proto{

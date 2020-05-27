@@ -174,10 +174,18 @@ func (b *Bucket) Channel(key string) (ch *Channel) {
 }
 
 // Broadcast push msgs to all channels in the bucket.
+// 广播，直接从bucket.chs中遍历
 func (b *Bucket) Broadcast(p *grpc.Proto, op int32) {
 	var ch *Channel
 	b.cLock.RLock()
 	for _, ch = range b.chs {
+		// 如果不在该channel的监听队列中，那么该消息不会发给该客户端
+		// 这个监听队列，是在建立连接是发送的 “accepts” 字段中取得的
+		// 譬如accpets = [1000, 1001, 1002], 但是op = 1003， 那么就不会发送
+		//
+		// 值得注意的是，这个op是从BroadcastReq.ProtoOp取得，BroadcastReq.ProtoOp又是从pushMsg.Operation取得
+		// 也就是说 op = grpc.BroadcastReq.ProtoOp = proto.Op = PushMsg.Operation = 从发送消息接口产生。
+		//
 		if !ch.NeedPush(op) {
 			continue
 		}
@@ -204,7 +212,10 @@ func (b *Bucket) DelRoom(room *Room) {
 
 // BroadcastRoom broadcast a message to specified room
 func (b *Bucket) BroadcastRoom(arg *grpc.BroadcastRoomReq) {
+	// 这里取模选中一个goroutine来执行任务
 	num := atomic.AddUint64(&b.routinesNum, 1) % b.c.RoutineAmount
+	// b.routines 是 b.c.RoutineAmount 数量的
+	// 有 b.c.RoutineSize 缓冲大小的 chan *grpc.BroadcastRoomReq
 	b.routines[num] <- arg
 }
 

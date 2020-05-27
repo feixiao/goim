@@ -10,10 +10,10 @@ import "github.com/gogo/protobuf/gogoproto/gogo.proto";
  * protocol
  */
 message Proto {
-    int32 ver = 1 [(gogoproto.jsontag) = "ver"];
-    int32 op = 2 [(gogoproto.jsontag) = "op"];
-    int32 seq = 3 [(gogoproto.jsontag) = "seq"];
-    bytes body = 4 [(gogoproto.jsontag) = "body"];
+    int32 ver = 1 [(gogoproto.jsontag) = "ver"];            // 版本号
+    int32 op = 2 [(gogoproto.jsontag) = "op"];              // 消息类型，如Ping，Pong, Text
+    int32 seq = 3 [(gogoproto.jsontag) = "seq"];            // 序列号 TODO:
+    bytes body = 4 [(gogoproto.jsontag) = "body"];          // 消息体 等于 PushMsg.Msg
 }
 
 message Empty{}

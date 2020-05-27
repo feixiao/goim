@@ -43,6 +43,11 @@ func (d *Dao) pingRedis(c context.Context) (err error) {
 // Mapping:
 //	mid -> key_server
 //	key -> server
+//	如果(mid=1, key=69dafe8b58066478aea48f3d0f384820,server=comet.001)
+//	mid_1 = {69dafe8b58066478aea48f3d0f384820: comet.001}
+//	key_69dafe8b58066478aea48f3d0f384820 = "comet.001"
+// 同一个用户可以在多个地方同时连入系统；同时也能看出来，
+// Session管理并不包括用户所在的房间，用户需要接受哪些房间的消息，这部分是在是在Logic.Connect处理好了之后通过gRPC响应，交给Comet处理的。
 func (d *Dao) AddMapping(c context.Context, mid int64, key, server string) (err error) {
 	conn := d.redis.Get()
 	defer conn.Close()

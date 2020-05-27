@@ -68,6 +68,7 @@ func (r *Room) Del(ch *Channel) bool {
 }
 
 // Push push msg to the room, if chan full discard it.
+// 遍历房间内的channel的链表，将消息放到channel的发送队列中，又回到了channel消息单发的逻辑。
 func (r *Room) Push(p *grpc.Proto) {
 	r.rLock.RLock()
 	for ch := r.next; ch != nil; ch = ch.Next {
