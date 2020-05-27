@@ -22,17 +22,26 @@
 
 
 #### 数据流转
+##### [《goim 中的 data flow 数据流转及优化思考》](https://tsingson.github.io/tech/goim-go-04/)
 + http 接口向 logic 发送数据
 + logic 从 redis 中获取会话数据( mid –> server 与 room–>server 的对应关系), 以 protobuf 序列化数据, 发送到 MQ
 + job 从 MQ 中订阅数据, 取出 im 发送数据中的 server / room 向指定 server 的 comet 发送数据
 + comet 接收 job 分发的数据后, 存入 指定 channel 的 ring buffer , 再转为 tcp/websocket 数据包, 发送到指定 channel 的客户端
 
 ### 问题解决
-+ 连接数如何分配 ？
-    + 连接到Comet，然后通过commet和logic之间的grpc heartbeat命令给logic信息
++ Comet连接数如何分配 ？
+   + 前面放置负载均衡器即可LVS、DNS
+   + 压缩数据显示单机支持100百万同时在线
+        + 连接超过100万部分呢？ 这个代码显示没有处理，只能想到的提前规划加机器，加大新机器的负载均衡权重
+   
++ 客户端的长连接在那台comet如何保存？
+   + 客户端在认证过程中需要Comet调用Logic的Connect获取相关参数。
+   + Logic将用户信息写入Redis待查(用户ID和用户长连接对应的机器)。
+   
 + 多个Comet和多个Logic怎么交互？
-    + Logic会获取全部的Comet消息，并且关注Comet变化
-    + 
+    + Logic会获取全部的Comet消息，并且关注Comet变化。
+    + 每个Comet通过基于gprc的负载均衡操作logic，基于discovery实现了gprc的resolver。
+    
 + 多个Job和多个Comet如果对应
     
 + 数据如何在多个节点之间转发 ？

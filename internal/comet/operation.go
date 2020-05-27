@@ -15,10 +15,17 @@ import (
 
 // Connect connected a connection.
 func (s *Server) Connect(c context.Context, p *model.Proto, cookie string) (mid int64, key, rid string, accepts []int32, heartbeat time.Duration, err error) {
+
+	// Body内部含有这些信息，Logic并没有分配
+	//	Mid      int64   `json:"mid"`      // 用户在业务中的ID (int64)
+	//	Key      string  `json:"key"`      // 客户端标识别,如果为空则自动生成UUID
+	//	RoomID   string  `json:"room_id"`  // 客户端加入房间
+	//	Platform string  `json:"platform"` // 客户端所在平台
+	//	Accepts  []int32 `json:"accepts"`  // 监听房间
 	reply, err := s.rpcClient.Connect(c, &logic.ConnectReq{
-		Server: s.serverID,
+		Server: s.serverID, // Comet自己的ServerID
 		Cookie: cookie,
-		Token:  p.Body,
+		Token:  p.Body, // 消息内容
 	})
 	if err != nil {
 		return

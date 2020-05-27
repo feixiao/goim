@@ -31,6 +31,7 @@ func (l *Logic) Connect(c context.Context, server, cookie string, token []byte) 
 	if key = params.Key; key == "" {
 		key = uuid.New().String()
 	}
+	// 信息存放在redis里面，方便后面查找
 	if err = l.dao.AddMapping(c, mid, key, server); err != nil {
 		log.Errorf("l.dao.AddMapping(%d,%s,%s) error(%v)", mid, key, server, err)
 	}

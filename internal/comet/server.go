@@ -30,6 +30,10 @@ const (
 func newLogicClient(c *conf.RPCClient) logic.LogicClient {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(c.Dial))
 	defer cancel()
+	// discovery://default/goim.logic ???
+	// 如何找到logic rpc服务接口的？
+	// grpc 需要使用resolver做服务发现与负载均衡，这边B站基于discovery做了resolver
+	// resolver "github.com/Bilibili/discovery/naming/grpc"
 	conn, err := grpc.DialContext(ctx, "discovery://default/goim.logic",
 		[]grpc.DialOption{
 			grpc.WithInsecure(),
