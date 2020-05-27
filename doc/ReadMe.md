@@ -37,15 +37,13 @@
 + 客户端的长连接在那台comet如何保存？
    + 客户端在认证过程中需要Comet调用Logic的Connect获取相关参数。
    + Logic将用户信息写入Redis待查(用户ID和用户长连接对应的机器)。
-   
+        + 需要Redis是单线程的，所以多个Logic对其操作也没有问题
 + 多个Comet和多个Logic怎么交互？
     + Logic会获取全部的Comet消息，并且关注Comet变化。
     + 每个Comet通过基于gprc的负载均衡操作logic，基于discovery实现了gprc的resolver。
-    
 + 多个Job和多个Comet如果对应
-    
-+ 数据如何在多个节点之间转发 ？
-+ 节点异常恢复 ？
++ 数据如何在多个节点之间转发
++ 节点异常恢复
 
 ### 参考资料
 + [《goim 架构与定制》](https://juejin.im/post/5cbb9e68e51d456e51614aab)
