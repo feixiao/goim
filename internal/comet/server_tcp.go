@@ -132,6 +132,8 @@ func (s *Server) ServeTCP(conn *net.TCPConn, rp, wp *bytes.Pool, tr *xtime.Timer
 
 	// 协议handshake超时检测
 	step := 0
+
+	// 设置timer
 	trd = tr.Add(time.Duration(s.c.Protocol.HandshakeTimeout), func() {
 		conn.Close()
 		log.Errorf("key: %s remoteIP: %s step: %d tcp handshake timeout", ch.Key, conn.RemoteAddr().String(), step)
@@ -164,6 +166,7 @@ func (s *Server) ServeTCP(conn *net.TCPConn, rp, wp *bytes.Pool, tr *xtime.Timer
 		return
 	}
 	trd.Key = ch.Key
+	// 重新设置timer
 	tr.Set(trd, hb)
 	white = whitelist.Contains(ch.Mid)
 	if white {
@@ -188,6 +191,7 @@ func (s *Server) ServeTCP(conn *net.TCPConn, rp, wp *bytes.Pool, tr *xtime.Timer
 			whitelist.Printf("key: %s read proto:%v\n", ch.Key, p)
 		}
 		if p.Op == grpc.OpHeartbeat {
+			// 重新设置timer
 			tr.Set(trd, hb)
 			p.Op = grpc.OpHeartbeatReply
 			p.Body = nil
